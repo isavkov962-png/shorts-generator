@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Бах на баяні — Порада дня</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #ffffff; color: #111111;
+    font-family: 'Inter', sans-serif; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 2rem 1.5rem;
+  }
+  .container { max-width: 580px; width: 100%; }
+  header { text-align: center; margin-bottom: 2.5rem; animation: fadeUp 0.6s ease forwards; }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; color: #111; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.7rem; color: #7a8a9a; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .date-line { font-size: 0.7rem; color: #bbb; letter-spacing: 0.05em; }
+  .card { background: #f8f9fb; border: 2px solid #e2e8f0; border-radius: 14px; padding: 2.5rem 2.5rem 2rem; min-height: 230px; animation: fadeUp 0.6s ease 0.15s both; }
+  .tag {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.18em;
+    text-transform: uppercase; margin-bottom: 1.3rem;
+    display: inline-block; padding: 0.3rem 0.8rem; border-radius: 100px;
+  }
+  .tag-technika       { background: #e8f0fb; color: #3a5fa8; }
+  .tag-artykulyatsiya { background: #e8f8ee; color: #2e7d50; }
+  .tag-bayan          { background: #fdf3e3; color: #a0620a; }
+  .tag-polifonia      { background: #f3e8fb; color: #7a3aaa; }
+
+  .tip-text { font-family: 'Playfair Display', serif; font-size: 1.85rem; line-height: 1.45; color: #111; font-weight: 700; margin-bottom: 1.5rem; }
+  .tip-detail { font-size: 0.97rem; line-height: 1.8; color: #444; border-top: 1px solid #e2e8f0; padding-top: 1.25rem; }
+  .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 3rem 0; color: #bbb; font-size: 0.8rem; }
+  .spinner { width: 24px; height: 24px; border: 2px solid #e2e8f0; border-top-color: #3a5fa8; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; animation: fadeUp 0.6s ease 0.3s both; }
+  .btn { background: #1e3a5f; border: none; color: #fff; font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 500; padding: 0.65rem 1.4rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .btn:hover { background: #2d5086; transform: translateY(-1px); }
+  .counter { font-size: 0.78rem; font-weight: 500; color: #999; }
+  .progress { height: 3px; background: #e2e8f0; border-radius: 2px; margin-top: 1.5rem; animation: fadeUp 0.6s ease 0.4s both; }
+  .progress-bar { height: 100%; background: #3a5fa8; border-radius: 2px; transition: width 0.5s ease; }
+  .today-btn { display: block; width: 100%; margin-top: 1rem; background: none; border: 2px solid #3a5fa8; color: #3a5fa8; font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.7rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; animation: fadeUp 0.6s ease 0.5s both; }
+  .today-btn:hover { background: #3a5fa8; color: #fff; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">🎹 Й. С. Бах на готово-виборному баяні</div>
+    <div class="subtitle">Поради для студентів академії</div>
+    <div class="date-line" id="dateDisplay"></div>
+  </header>
+
+  <div class="card" id="card">
+    <div class="loading" id="loadingEl"><div class="spinner"></div><span>Завантаження поради...</span></div>
+    <div id="tipContent" style="display:none">
+      <div class="tag" id="tipTag"></div>
+      <div class="tip-text" id="tipText"></div>
+      <div class="tip-detail" id="tipDetail"></div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="btn" onclick="prevTip()">← Назад</button>
+    <span class="counter" id="counter"></span>
+    <button class="btn" onclick="nextTip()">Вперед →</button>
+  </div>
+  <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+  <button class="today-btn" onclick="goToday()">↑ Порада дня</button>
+</div>
+
+<script>
+const BASE = [
+  {
+    tag: "Специфіка баяна",
+    tagClass: "tag-bayan",
+    text: "На готово-виборному баяні Бах — це завжди вибір системи для кожного голосу.",
+    detail: "У поліфонії Баха вирішуйте заздалегідь: який голос грати на готовій системі, який — на виборній. Виборна клавіатура дає більшу свободу аплікатури і незалежність пальців для ведення голосу. Готова — зручна для типових басових формул. Не змішуйте системи всередині одного голосу."
+  },
+  {
+    tag: "Артикуляція",
+    tagClass: "tag-artykulyatsiya",
+    text: "Артикуляція у Баха — це голосоведення. Без неї голоси зливаються.",
+    detail: "Вирішальну роль у голосоведенні органних перекладень на баяні відіграє саме артикуляція. Non legato між мотивами — не технічний прийом, а змістовний: кожна цезура відокремлює риторичну думку. Відпрацьовуйте артикуляцію кожного голосу окремо, перш ніж об'єднувати."
+  },
+  {
+    tag: "Поліфонія",
+    tagClass: "tag-polifonia",
+    text: "Тема фуги має свій характер. Відповідь — свій. Не вирівнюйте їх.",
+    detail: "При вступі теми в новому голосі підкреслюйте її більшою артикуляційною вагомістю — не гучністю, а чіткістю атаки і рельєфністю інтонування. Відповідь — трохи м'якша, але рівноправна. Так архітектура фуги стає чутною навіть без динамічних змін."
+  },
+  {
+    tag: "Міховедіння",
+    tagClass: "tag-bayan",
+    text: "Міх у Баха — не динаміка. Це дихання між фразами.",
+    detail: "На готово-виборному баяні зміна міху є найтонший виконавський момент у Баху. Плануйте її на межі між мотивами або фразами — там, де є природна цезура. Різка або непланова зміна руйнує органну безперервність звучання. Свідоме міховедіння в органних транскрипціях має особливе значення."
+  },
+  {
+    tag: "Техніка гри",
+    tagClass: "tag-technika",
+    text: "Незалежність голосів — це незалежність рук і пальців. Тренуйте їх окремо.",
+    detail: "У виконавській практиці робота над поліфонією розглядається як окремий розділ техніки: кожен голос спочатку вивчається як самостійна мелодія з власним характером, динамікою і артикуляцією. Лише після цього відбувається об'єднання. Особлива увага — 4-му і 5-му пальцям правої руки, які ведуть верхній голос."
+  },
+  {
+    tag: "Артикуляція",
+    tagClass: "tag-artykulyatsiya",
+    text: "Стаккато у Баха — не стрибок. Це портаменто з опорою.",
+    detail: "У поліфонічних творах Баха стаккато наближається до портаменто — воно коротше за легато, але не уривчасте. Точка над нотою означала не скорочення, а опору — зупинку перед наступним звуком. Надто гостре стаккато руйнує лінію голосу і суперечить природі барокового інструментарію."
+  },
+  {
+    tag: "Поліфонія",
+    tagClass: "tag-polifonia",
+    text: "Бас у Баха — це мелодія, а не фундамент.",
+    detail: "На готово-виборному баяні ліва рука веде справжній мелодичний голос у фугах та інвенціях. Вивчайте партію лівої руки як самостійну мелодію зі своєю фразировкою. Готова система зручна для простих басових формул, але у складній поліфонії переходьте на виборну — вона дасть аплікатурну свободу для мелодичного баса."
+  },
+  {
+    tag: "Техніка гри",
+    tagClass: "tag-technika",
+    text: "Аплікатура у Баха — це не зручність, а голосоведіння.",
+    detail: "Аплікатуру в поліфонії Баха вибудовуйте не з принципу зручності, а з принципу зв'язності голосу. Іноді незручна аплікатура — єдина, що дозволяє не переривати лінію. У барокову добу виконавці використовували перекладання пальців саме для збереження рівності і зв'язності мотивів."
+  },
+  {
+    tag: "Специфіка баяна",
+    tagClass: "tag-bayan",
+    text: "Вибір регістру — це вибір інструменту Баха: орган чи клавесин.",
+    detail: "Для органних творів (токати, прелюдії, фуги великої форми) — повні регістри з тривалим, об'ємним звуком. Для клавірних (інвенції, синфонії, сюїти) — прозорі, середні тембри з чіткою атакою. Акордеон з tutti наближається до органу, без tutti — до клавесину. Готово-виборний баян дозволяє тонко варіювати тембр між голосами."
+  },
+  {
+    tag: "Артикуляція",
+    tagClass: "tag-artykulyatsiya",
+    text: "Трель — з верхньої ноти, завжди. Це не правило — це гармонія.",
+    detail: "Трель у Баху починається з верхньої допоміжної ноти, бо вона є дисонансом, який вирішується в основну. Це гармонічна логіка, а не умовність. Трель, що починається з основної ноти — романтична традиція XIX століття. На баяні особлива увага до початку трелі: перша нота має бути чіткою і природно вписуватись у гармонію."
+  },
+  {
+    tag: "Поліфонія",
+    tagClass: "tag-polifonia",
+    text: "Терасна динаміка — не монотонність. Це архітектура контрасту.",
+    detail: "Бах здебільшого використовував терасну динаміку: forte і piano як цілісні розділи, а не поступове crescendo. На баяні це означає чіткий перехід між динамічними рівнями на межі розділів — не розмитий, а архітектурний. Всередині розділу динаміка відносно рівна, але артикуляція і агогіка створюють внутрішнє дихання."
+  },
+  {
+    tag: "Техніка гри",
+    tagClass: "tag-technika",
+    text: "Темп Баха — незмінний пульс. Але пульс може дихати.",
+    detail: "Метрономічна рівність не означає механічності. Всередині стабільного темпу існує мікроагогіка: невидимі відтінки при переході між мотивами, природне дихання фрази. Дрібне rubato, заборонене на великих відрізках, існує на рівні одного-двох тактів і надає музиці живого характеру без порушення барокової метричної строгості."
+  },
+
+  // === ПОРАДИ ЗА ВАНДОЮ ЛАНДОВСЬКОЮ ===
+  {
+    tag: "Артикуляція",
+    tagClass: "tag-artykulyatsiya",
+    text: "Орнаментика — не прикраса. Це сама музика.",
+    detail: "Мелізм несе той самий виразний зміст, що й основні ноти, серед яких він стоїть. На баяні трель, мордент чи форшлаг мають бути органічно вмонтовані в тканину, а не «вставлені» зверху. Відпрацьовуйте мелізми окремо, домагаючись їх природності — аж поки вони не стануть невід'ємною частиною голосу, а не технічним завданням."
+  },
+  {
+    tag: "Специфіка баяна",
+    tagClass: "tag-bayan",
+    text: "Сила виконавця — у витонченості, а не у гучності.",
+    detail: "У клавесинній музиці Баха виразність досягається через точність, витонченість і вагу кожної ноти, а не через динамічну потужність. На баяні це означає — не «натискати» на звук, а «вести» його. Особливо у повільних частинах: кожна нота повинна мати відчуту внутрішню вагу при відносно стриманій гучності."
+  },
+  {
+    tag: "Артикуляція",
+    tagClass: "tag-artykulyatsiya",
+    text: "Зв'язна гра — це не суцільне легато. У Баха є дихання між словами.",
+    detail: "Важливо розрізняти «зв'язність лінії» і «механічне легато». Голос Баха дихає — між мотивами є мікро-цезури, невідчутні на слух, але важливі для розуміння риторичної структури. На баяні: legato всередині мотиву, ледь помітна цезура на межі — і знову legato. Це «клавесинне дихання» має стати природним рефлексом."
+  },
+  {
+    tag: "Поліфонія",
+    tagClass: "tag-polifonia",
+    text: "Кожен голос — це окрема особистість. Слухайте їх як ансамбль.",
+    detail: "Ідеальне виконання поліфонії Баха — це коли слухач може «стежити» за будь-яким голосом окремо і отримувати задоволення від кожного. На баяні: уявіть, що кожен голос грає окремий музикант. Записуйте себе і слухайте кожен голос ізольовано — чи він самодостатній? Чи має власний характер і фразування?"
+  },
+  {
+    tag: "Техніка гри",
+    tagClass: "tag-technika",
+    text: "Темп Баха — це характер, а не цифра на метрономі.",
+    detail: "Остерігайтеся визначення темпу за метрономом без урахування характеру музики. Токата вимагає одного темпу — але всередині неї імпровізаційні розділи й суворі фуги мають різне «дихання». На баяні: темп обирайте з питання «яким голосом говорить ця музика?» — а не «яку цифру ставлять у навчальному виданні?»"
+  },
+  {
+    tag: "Специфіка баяна",
+    tagClass: "tag-bayan",
+    text: "Клавесин щипає струну. Баян — стискає повітря. Але мета — та сама: ясність кожної ноти.",
+    detail: "Клавесин цінувався за звукову ясність і відчутність кожного удару — саме тому Бах цінував цей інструмент над тогочасним фортепіано. На баяні цю ясність досягти важче, але можливо: через точність атаки, контрольовану артикуляцію і уникнення «розмитого» звуку при зміні міху. Прозорість важливіша за красу тембру."
+  },
+
+  // === ПОРАДИ ЗА ОБЕРЮХТІНИМ (Виконання органних п'єс Баха на баяні, 1973) ===
+  {
+    tag: "Специфіка баяна",
+    tagClass: "tag-bayan",
+    text: "Орган — безперервний. Баян — переривчастий. Навчіться приховувати цю різницю.",
+    detail: "Ключова проблема перекладення: органний звук не залежить від міху — він тече рівно. Баянний — перервається при зміні міху. Рішення: плануйте зміни міху тільки там, де в органному оригіналі є природна цезура, зняття чи паузи. Практична вправа: зіграйте органну п'єсу і позначте на нотах всі допустимі точки зміни міху."
+  },
+  {
+    tag: "Техніка гри",
+    tagClass: "tag-technika",
+    text: "У педальних партіях органу — ліва рука баяніста. Голос, а не акорд.",
+    detail: "При перекладанні органних творів педальна партія переходить до лівої руки баяніста. Педаль в Баха — це самостійний мелодичний голос із власним характером, а не просто гармонічна підтримка. На готово-виборному баяні переводьте педаль на виборну систему лівої руки — вона дає більшу свободу для мелодичного ведення і виразнішого фразування."
+  },
+  {
+    tag: "Специфіка баяна",
+    tagClass: "tag-bayan",
+    text: "Для органних п'єс Баха — повний регістр. Для клавірних — прозорий середній.",
+    detail: "Слід чітко розмежовувати підхід до органних і клавірних творів Баха. Токати, прелюдії, хоральні обробки — розраховані на об'ємний органний звук і потребують повного баянного регістру. Інвенції, партити, французькі сюїти — написані для клавесину: чіткий, прозорий тон без зайвої «маси». Плутати ці два підходи — значить спотворювати стиль."
+  },
+  {
+    tag: "Артикуляція",
+    tagClass: "tag-artykulyatsiya",
+    text: "В органній музиці Баха штрих — це реєстрова фарба. Зв'язно — як флейта, уривчасто — як язичковий.",
+    detail: "Існує пряма аналогія між штрихами баяніста і реєстрами органу: суцільне legato імітує флейтові тембри, non legato — принципал, staccato — язичкові регістри. Це принципово змінює підхід до вибору штрихів: у перекладенні органних творів артикуляція — це і є «реєстровка» баяна. Свідомо обирайте штрих залежно від того, який органний тембр ви «чуєте» в даному голосі."
+  },
+  {
+    tag: "Поліфонія",
+    tagClass: "tag-polifonia",
+    text: "Трьохголосся Баха на баяні — це два мануали і педаль органу. Розподіляйте відповідно.",
+    detail: "Існує конкретний принцип розподілу голосів для трьохголосних фуг: верхній і середній голоси — права рука (мануал I), нижній — ліва (мануал II або педаль). Там, де середній голос «переходить» між руками — це природна зміна мануалів. Такий підхід не лише полегшує технічне виконання, а й відновлює органну темброву драматургію."
+  },
+  {
+    tag: "Техніка гри",
+    tagClass: "tag-technika",
+    text: "Аплікатура в органних перекладеннях — з урахуванням довших нот. Баяніст не знімає руку, як органіст.",
+    detail: "Органіст може тримати ноту педаллю або другим мануалом, поки перша рука перекладається. Баяніст позбавлений цієї можливості. Тому в перекладеннях органних творів необхідно особливо ретельно планувати аплікатуру для довгих витриманих нот у поєднанні з рухливими голосами. Іноді доцільно використовувати підкладання пальця під ноту для збереження зв'язності."
+  },
+];
+
+let cur = 0, todayIdx = 0;
+
+function dayKey() { const d=new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }
+function baseIndex() { const days=Math.floor((new Date()-new Date('2024-01-01'))/86400000); return days%BASE.length; }
+
+function show(animate) {
+  const tip = BASE[cur];
+  const go = () => {
+    document.getElementById('loadingEl').style.display = 'none';
+    document.getElementById('tipContent').style.display = 'block';
+    const tagEl = document.getElementById('tipTag');
+    tagEl.textContent = tip.tag;
+    tagEl.className = 'tag ' + tip.tagClass;
+    document.getElementById('tipText').textContent = tip.text;
+    document.getElementById('tipDetail').textContent = tip.detail;
+    document.getElementById('counter').textContent = (cur+1) + ' / ' + BASE.length;
+    document.getElementById('progressBar').style.width = ((cur+1)/BASE.length*100) + '%';
+  };
+  const card = document.getElementById('card');
+  if (animate) {
+    card.style.transition = 'opacity 0.2s, transform 0.2s';
+    card.style.opacity = '0'; card.style.transform = 'translateY(6px)';
+    setTimeout(() => { go(); card.style.opacity='1'; card.style.transform='translateY(0)'; }, 200);
+  } else { go(); }
+}
+
+function nextTip() { cur=(cur+1)%BASE.length; show(true); }
+function prevTip() { cur=(cur-1+BASE.length)%BASE.length; show(true); }
+function goToday() { cur=todayIdx; show(true); }
+
+function init() {
+  document.getElementById('dateDisplay').textContent =
+    new Date().toLocaleDateString('uk-UA',{weekday:'long',day:'numeric',month:'long'});
+  cur = baseIndex(); todayIdx = cur; show(false);
+}
+
+init();
+</script>
+</body>
+</html>
